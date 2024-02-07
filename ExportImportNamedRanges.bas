@@ -1,37 +1,61 @@
 Sub ExportNamedRangesToCSV()
     Dim wb As Workbook
-    Dim ws As Worksheet
-    Dim nm As Name
     Dim fileName As String
     Dim fileNum As Integer
+    Dim rangeList As Collection ' Collection to store named range-cell pairs
     
     ' Set the workbook object
     Set wb = ThisWorkbook
     
+    ' Get the collection of named range-cell pairs
+    Set rangeList = GetNamedRangesList(wb)
+    
     ' Prompt the user for the CSV file name
     fileName = GetSaveCSVFileName
-    
     
     ' Open the file for writing
     fileNum = FreeFile()
     Open fileName For Output As fileNum
+
     
-    ' Write headers to CSV file
-    Print #fileNum, "Named Range,Cell Reference"
-    
-    ' Loop through all named ranges in the workbook
-    For Each nm In wb.Names
-        ' Check if named range refers to a range on a worksheet
-        If Not nm.RefersToRange Is Nothing Then
-            ' Write named range name and its cell reference to CSV file
-            Print #fileNum, nm.Name & "," & nm.RefersToRange.Worksheet.Name & "!" & nm.RefersToRange.Address
-        End If
-    Next nm
+    ' Write named range-cell pairs to the CSV file
+    WriteRangeListToCSV rangeList, fileName, fileNum
     
     ' Close the file
     Close fileNum
     
     MsgBox "Named ranges exported to " & fileName, vbInformation
+End Sub
+
+
+
+Private Function GetNamedRangesList(ByVal wb As Workbook) As Collection
+    Dim nm As Name
+    Dim rangeList As New Collection ' Collection to store named range-cell pairs
+    
+    ' Loop through all named ranges in the workbook
+    For Each nm In wb.Names
+        ' Check if named range refers to a range on a worksheet
+        If Not nm.RefersToRange Is Nothing Then
+            ' Store named range name and its cell reference in the list
+            rangeList.Add Array(nm.Name, nm.RefersToRange.Worksheet.Name & "!" & nm.RefersToRange.Address)
+        End If
+    Next nm
+    
+    ' Return the collection of named range-cell pairs
+    Set GetNamedRangesList = rangeList
+End Function
+
+
+Private Sub WriteRangeListToCSV(ByVal rangeList As Collection, ByVal fileName As String, ByVal fileNum As Integer)
+    ' Write headers to CSV file
+    Print #fileNum, "Named Range,Cell Reference"
+    
+    ' Loop through the list of named range-cell pairs and write them to the CSV file
+    Dim pair
+    For Each pair In rangeList
+        Print #fileNum, pair(0) & "," & pair(1)
+    Next pair
 End Sub
 
 
@@ -48,8 +72,6 @@ Private Function GetSaveCSVFileName() As String
         GetSaveCSVFileName = fileName
     End If
 End Function
-
-
 
 Sub ImportNamedRangesFromCSV()
     Dim wb As Workbook
