@@ -2,7 +2,6 @@ Attribute VB_Name = "Manage_NamedRangesFromCSV"
 '
 'Public
 '
-
 Sub ExportNamedRangesToCSV()
     Dim fileName As String
     Dim rangeList As Collection
@@ -62,54 +61,6 @@ Sub UpdateNamedRangesFromCSV()
     
     MsgBox "Named ranges updated from " & fileName, vbInformation
 End Sub
-
-
-'
-'File
-'
-
-Private Function GetSaveCSVFileName() As String
-    Dim fileName As String
-    
-    ' Prompt the user to select the CSV file
-    fileName = GetCSVFileName("Save As CSV File", "NamedRanges.csv")
-    
-    ' If no file selected, display a message and return an empty string
-    If fileName = "" Then MsgBox "No file selected. Exiting.", vbExclamation
-    GetSaveCSVFileName = fileName
-End Function
-
-
-Private Function GetOpenCSVFileName() As String
-    Dim fileName As String
-    
-    ' Prompt the user to select the CSV file
-    fileName = GetCSVFileName("Open CSV File", "NamedRanges.csv")
-    
-    ' If no file selected, display a message and return an empty string
-    If fileName = "" Then MsgBox "No file selected. Exiting.", vbExclamation
-    GetOpenCSVFileName = fileName
-End Function
-
-
-Private Function GetCSVFileName(ByVal dialogTitle As String, ByVal defaultFileName As String) As String
-    Dim fileName As Variant
-    
-    ' Set the initial directory to the current folder
-    ChDrive ThisWorkbook.Path
-    ChDir ThisWorkbook.Path
-    
-    ' Prompt the user to select the CSV file
-    fileName = Application.GetSaveAsFilename(FileFilter:="CSV Files (*.csv), *.csv", _
-                                             Title:=dialogTitle, _
-                                             InitialFileName:=defaultFileName)
-
-        ' Check if user canceled the operation or no file selected
-    If VarType(fileName) <> vbBoolean Then GetCSVFileName = CStr(fileName)
-    
-End Function
-
-
 '
 'Collection
 '
@@ -196,6 +147,18 @@ Private Sub ClearNamedRanges(ByVal wb As Workbook)
     Next n
 End Sub
 
+
+Function NamedRangeExists(ByVal wb As Workbook, ByVal namedRange As String) As Boolean
+    Dim namedRangeObj As Name
+    
+    On Error Resume Next
+    Set namedRangeObj = wb.Names(namedRange)
+    On Error GoTo 0
+    
+    NamedRangeExists = Not namedRangeObj Is Nothing
+End Function
+
+
 Private Sub AddNamedRanges(ByVal wb As Workbook, ByVal rangeList As Collection)
     Dim pair
     
@@ -235,34 +198,53 @@ Private Sub AddNamedRange(ByVal wb As Workbook, ByVal namedRange As String, ByVa
 End Sub
 
 Private Sub UpdateNamedRanges(ByVal wb As Workbook, ByVal rangeList As Collection)
-    Dim pair
-    
+    Dim NameRange As String
+    Dim RangeReference As String
     ' Loop through the collection of named range-cell pairs and update the named ranges in the workbook
     For Each pair In rangeList
-        UpdateNamedRange wb, pair(0), pair(1)
+        NameRange = pair(0)
+        RangeReference = pair(1)
+
+        UpdateNamedRange wb, NameRange, RangeReference
     Next pair
 End Sub
 
-Private Sub UpdateNamedRange(ByVal wb As Workbook, ByVal namedRange As String, ByVal cellRef As String)
-    Dim namedRangeObj As Name
-    Dim newRef As Range
+Sub UpdateNamedRange(ByVal wb As Workbook, ByVal NewNameRange As String, ByVal RangeReference As String)
+    Dim namedRange As Name
+    Dim OldNameRange As String
+    Dim n As Integer
+
+    ' Loop through each named range in the workbook
+    For n = 1 To wb.Names.Count
     
-    ' Check if the named range exists in the workbook
-    On Error Resume Next
-    Set namedRangeObj = wb.Names(namedRange)
-    On Error GoTo 0
+        ' Check if the named range should be skipped
+        If Not IsSpecialNamedRange(wb.Names(n)) Then
+        
+            ' Check if the named range refers to the specified range reference
+            If wb.Names(n).RefersTo = "=" & RangeReference Then ' "=" added to match the full reference
+         
+                If wb.Names(n).Name <> "" Then
+                    ' Store the old name of the named range
+                    OldNameRange = wb.Names(n).Name
+                    Exit For
+                End If
+            End If
+        End If
+    Next n
     
-    If namedRangeObj Is Nothing Then
-        MsgBox "Named range '" & namedRange & "' not found. Skipping update.", vbExclamation
-        Exit Sub
+    ' Check if we found the old named range
+    If OldNameRange <> "" Then
+        ' Update the name of the named range to the new name
+        On Error Resume Next ' Ignore errors if the new name already exists
+        wb.Names(OldNameRange).Name = NewNameRange
+        On Error GoTo 0 ' Reset error handling
+        Debug.Print "Renamed from " & OldNameRange & " to " & NewNameRange
+    Else
+        MsgBox "Named Range Reference " & RangeReference & " with range: " & NewNameRange & "do not exist", vbInformation
     End If
-    
-    ' Set the new range reference
-    Set newRef = wb.Sheets(Split(cellRef, "!")(0)).Range(Split(cellRef, "!")(1))
-    
-    ' Update the named range reference
-    namedRangeObj.RefersTo = newRef
 End Sub
+
+
 
 Private Function IsSpecialNamedRange(ByVal nm As Name) As Boolean
     ' Check if the named range should be skipped based on its name
@@ -274,3 +256,53 @@ Private Function IsSpecialNamedRange(ByVal nm As Name) As Boolean
     End If
 End Function
 
+
+
+'
+'Miscelanea
+'
+
+'
+'File
+'
+
+Private Function GetSaveCSVFileName() As String
+    Dim fileName As String
+    
+    ' Prompt the user to select the CSV file
+    fileName = GetCSVFileName("Save As CSV File", "NamedRanges.csv")
+    
+    ' If no file selected, display a message and return an empty string
+    If fileName = "" Then MsgBox "No file selected. Exiting.", vbExclamation
+    GetSaveCSVFileName = fileName
+End Function
+
+
+Private Function GetOpenCSVFileName() As String
+    Dim fileName As String
+    
+    ' Prompt the user to select the CSV file
+    fileName = GetCSVFileName("Open CSV File", "NamedRanges.csv")
+    
+    ' If no file selected, display a message and return an empty string
+    If fileName = "" Then MsgBox "No file selected. Exiting.", vbExclamation
+    GetOpenCSVFileName = fileName
+End Function
+
+
+Private Function GetCSVFileName(ByVal dialogTitle As String, ByVal defaultFileName As String) As String
+    Dim fileName As Variant
+    
+    ' Set the initial directory to the current folder
+    ChDrive ThisWorkbook.Path
+    ChDir ThisWorkbook.Path
+    
+    ' Prompt the user to select the CSV file
+    fileName = Application.GetSaveAsFilename(FileFilter:="CSV Files (*.csv), *.csv", _
+                                             Title:=dialogTitle, _
+                                             InitialFileName:=defaultFileName)
+
+        ' Check if user canceled the operation or no file selected
+    If VarType(fileName) <> vbBoolean Then GetCSVFileName = CStr(fileName)
+    
+End Function
