@@ -10,6 +10,7 @@
 ' Dependencies:    None
 '
 '*******************************************************************************
+Attribute VB_Name = ColumnRowToNamedRangeInFormulae
 
 Public Sub Macro_ColumnRow_To_NamedRange_InFormulae()
     ' Disable various Excel features to improve performance
