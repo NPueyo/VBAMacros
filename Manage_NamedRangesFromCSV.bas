@@ -1,3 +1,14 @@
+'*******************************************************************************
+' Project:         Macro_ColumnRow_To_NamedRange_InFormulae
+' Module:          Manage_NamedRangesFromCSV
+' Description:     macros to import, export and update Named Ranges from a CSV file
+'
+' Author:          https://github.com/NPueyo
+' Created:         2024/02/18
+'
+' Dependencies:    None
+'
+'*******************************************************************************
 Attribute VB_Name = "Manage_NamedRangesFromCSV"
 '
 'Public
