@@ -1,11 +1,10 @@
 '*******************************************************************************
-' Project:         Macro_ColumnRow_To_NamedRange_InFormulae
 ' Module:          ColumnRowToNamedRangeInFormulae
 ' Description:     Macro to convert in all formulae of the selected Range
-'                  its ColumnoRow into Named Range if it exists.
+'                  its Cell reference into Named Range if it exists.
 '
 ' Author:          https://github.com/NPueyo
-' Created:         2024/02/03
+' Created:         2024/02/18
 '
 ' Dependencies:    None
 '

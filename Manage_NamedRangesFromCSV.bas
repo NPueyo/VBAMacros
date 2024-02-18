@@ -1,7 +1,6 @@
 '*******************************************************************************
-' Project:         Macro_ColumnRow_To_NamedRange_InFormulae
 ' Module:          Manage_NamedRangesFromCSV
-' Description:     macros to import, export and update Named Ranges from a CSV file
+' Description:     Macros to import, export and update Named Ranges from a CSV file
 '
 ' Author:          https://github.com/NPueyo
 ' Created:         2024/02/18
@@ -16,16 +15,16 @@ Attribute VB_Name = "Manage_NamedRangesFromCSV"
 Sub ExportNamedRangesToCSV()
     Dim fileName As String
     Dim rangeList As Collection
-    
+
     ' Get the collection of named range-cell pairs
     Set rangeList = GetNamedRangesList(ThisWorkbook)
-    
+
     ' Prompt the user for the CSV file name
     fileName = GetSaveCSVFileName
-    
+
     ' If no file selected, exit the subroutine
     If fileName = "" Then Exit Sub
-    
+
     ' Disable various Excel features to improve performance
     TurnOffOptimizations
 
@@ -34,7 +33,7 @@ Sub ExportNamedRangesToCSV()
 
     ' Re-enable Excel features after the code execution
     TurnOnOptimizations
-    
+
     MsgBox "Named ranges exported to " & fileName, vbInformation
 End Sub
 
@@ -42,48 +41,48 @@ End Sub
 Sub ImportNamedRangesFromCSV()
     Dim fileName As String
     Dim rangeList As Collection
-    
+
     ' Prompt the user to select the CSV file
     fileName = GetOpenCSVFileName
-    
+
     ' If no file selected, exit the subroutine
     If fileName = "" Then Exit Sub
-    
+
 
     ' Disable various Excel features to improve performance
     TurnOffOptimizations
 
     ' Read named range-cell pairs from the CSV file
     Set rangeList = ReadRangeListFromCSV(fileName)
-    
+
     ' Clear existing named ranges
     ClearNamedRanges ThisWorkbook
-    
+
     ' Add named ranges to the workbook
     AddNamedRanges ThisWorkbook, rangeList
 
     ' Re-enable Excel features after the code execution
     TurnOnOptimizations
-    
+
     MsgBox "Named ranges imported from " & fileName, vbInformation
 End Sub
 
 Sub UpdateNamedRangesFromCSV()
     Dim fileName As String
     Dim rangeList As Collection
-    
+
     ' Prompt the user to select the CSV file
     fileName = GetOpenCSVFileName
-    
+
     ' If no file selected, exit the subroutine
     If fileName = "" Then Exit Sub
-    
+
     ' Disable various Excel features to improve performance
     TurnOffOptimizations
 
     ' Read named range-cell pairs from the CSV file
     Set rangeList = ReadRangeListFromCSV(fileName)
-    
+
     ' Update named ranges in the workbook
     UpdateNamedRanges ThisWorkbook, rangeList
 
