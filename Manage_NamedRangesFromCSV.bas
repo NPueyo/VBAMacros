@@ -15,11 +15,18 @@ Sub ExportNamedRangesToCSV()
     ' If no file selected, exit the subroutine
     If fileName = "" Then Exit Sub
     
+    ' Disable various Excel features to improve performance
+    TurnOffOptimizations
+
     ' Write named range-cell pairs to the CSV file
     WriteRangeListToCSV rangeList, fileName
+
+    ' Re-enable Excel features after the code execution
+    TurnOnOptimizations
     
     MsgBox "Named ranges exported to " & fileName, vbInformation
 End Sub
+
 
 Sub ImportNamedRangesFromCSV()
     Dim fileName As String
@@ -31,6 +38,10 @@ Sub ImportNamedRangesFromCSV()
     ' If no file selected, exit the subroutine
     If fileName = "" Then Exit Sub
     
+
+    ' Disable various Excel features to improve performance
+    TurnOffOptimizations
+
     ' Read named range-cell pairs from the CSV file
     Set rangeList = ReadRangeListFromCSV(fileName)
     
@@ -39,6 +50,9 @@ Sub ImportNamedRangesFromCSV()
     
     ' Add named ranges to the workbook
     AddNamedRanges ThisWorkbook, rangeList
+
+    ' Re-enable Excel features after the code execution
+    TurnOnOptimizations
     
     MsgBox "Named ranges imported from " & fileName, vbInformation
 End Sub
@@ -53,11 +67,17 @@ Sub UpdateNamedRangesFromCSV()
     ' If no file selected, exit the subroutine
     If fileName = "" Then Exit Sub
     
+    ' Disable various Excel features to improve performance
+    TurnOffOptimizations
+
     ' Read named range-cell pairs from the CSV file
     Set rangeList = ReadRangeListFromCSV(fileName)
     
     ' Update named ranges in the workbook
     UpdateNamedRanges ThisWorkbook, rangeList
+
+    ' Re-enable Excel features after the code execution
+    TurnOnOptimizations
     
     MsgBox "Named ranges updated from " & fileName, vbInformation
 End Sub
@@ -306,3 +326,29 @@ Private Function GetCSVFileName(ByVal dialogTitle As String, ByVal defaultFileNa
     If VarType(fileName) <> vbBoolean Then GetCSVFileName = CStr(fileName)
     
 End Function
+
+
+Private Sub TurnOffOptimizations()
+    ' Turn off various Excel features to improve performance
+
+    With Application
+        .Calculation = xlCalculationManual
+        .EnableEvents = False
+        .ScreenUpdating = False
+        .DisplayStatusBar = False
+        .DisplayAlerts = False
+    End With
+End Sub
+
+Private Sub TurnOnOptimizations()
+    ' Turn on various Excel features after the code execution
+
+    With Application
+        .Calculation = xlCalculationAutomatic
+        .EnableEvents = True
+        .ScreenUpdating = True
+        .DisplayStatusBar = True
+        .DisplayAlerts = True
+    End With
+End Sub
+
